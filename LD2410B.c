@@ -378,7 +378,8 @@ uint8_t LD2410B_buildGetDistanceResolution(uint8_t* buffer, uint16_t size) {
     return off;
 }
 
-uint8_t LD2410B_buildSetAuxControl(uint8_t* buffer, uint16_t size, const LD2410B_LightSense_t lightSense, const uint8_t threshold, const LD2410B_OutputPin_t outputPin) {
+uint8_t LD2410B_buildSetAuxControl(uint8_t* buffer, uint16_t size, const LD2410B_LightSense_t lightSense, const uint8_t threshold,
+                                   const LD2410B_OutputPin_t outputPin) {
     if (buildHeader(buffer, size, 6) != LD2410B_SUCCESS) {
         return 0;
     }
@@ -512,7 +513,7 @@ LD2410B_Status_t LD2410B_parseGetFWVersion(const uint8_t* buffer, uint16_t size,
     return LD2410B_SUCCESS;
 }
 
-LD2410B_Status_t LD2410B_parseGetMacAddress(const uint8_t* buffer, uint16_t size, uint8_t mac[6]) {
+LD2410B_Status_t LD2410B_parseGetMacAddress(const uint8_t* buffer, uint16_t size, uint8_t* mac) {
     if (mac == NULL) {
         return LD2410B_ERROR_NULL_PTR;
     }
@@ -568,7 +569,8 @@ LD2410B_Status_t LD2410B_parseGetDistanceResolution(const uint8_t* buffer, uint1
     return LD2410B_SUCCESS;
 }
 
-LD2410B_Status_t LD2410B_parseGetAuxControl(const uint8_t* buffer, uint16_t size, LD2410B_LightSense_t* lightSense, uint8_t* threshold, LD2410B_OutputPin_t* outputPin) {
+LD2410B_Status_t LD2410B_parseGetAuxControl(const uint8_t* buffer, uint16_t size, LD2410B_LightSense_t* lightSense, uint8_t* threshold,
+                                            LD2410B_OutputPin_t* outputPin) {
     if (size < 18U) {
         return LD2410B_ERROR_INVALID_LENGTH;
     }
