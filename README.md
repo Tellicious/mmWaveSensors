@@ -1,4 +1,5 @@
-# LD2410B encoding / decoding library
+# mmWave sensor frames encoding / decoding library
+## LD2410B
 - Initialization
     ```cpp
         uint8_t txBuffer[60], length;
