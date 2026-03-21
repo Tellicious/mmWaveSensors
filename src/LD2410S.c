@@ -35,30 +35,30 @@
 /* Macros --------------------------------------------------------------------*/
 
 /* Command frames: header FD FC FB FA (little-endian u32 = 0xFAFBFCFD), footer 04 03 02 01 */
-#define LD2410S_FRAME_HEADER_CMD 0xFAFBFCFDU
-#define LD2410S_FRAME_FOOTER_CMD 0x01020304U
+#define LD2410S_FRAME_HEADER_CMD        0xFAFBFCFDU
+#define LD2410S_FRAME_FOOTER_CMD        0x01020304U
 
 /* Standard report frames: header F4 F3 F2 F1 (u32=0xF1F2F3F4), footer F8 F7 F6 F5 (u32=0xF5F6F7F8) */
-#define LD2410S_FRAME_HEADER_STD 0xF1F2F3F4U
-#define LD2410S_FRAME_FOOTER_STD 0xF5F6F7F8U
+#define LD2410S_FRAME_HEADER_STD        0xF1F2F3F4U
+#define LD2410S_FRAME_FOOTER_STD        0xF5F6F7F8U
 
 /* Minimal report frames: head 0x6E, tail 0x62 */
-#define LD2410S_FRAME_HEAD_MIN 0x6EU
-#define LD2410S_FRAME_TAIL_MIN 0x62U
+#define LD2410S_FRAME_HEAD_MIN          0x6EU
+#define LD2410S_FRAME_TAIL_MIN          0x62U
 
 /* Commands (HLK-LD2410S serial communication protocol v1.00) */
-#define LD2410S_CMD_READ_FW_VERSION    0x0000U
-#define LD2410S_CMD_ENABLE_CONFIG      0x00FFU
-#define LD2410S_CMD_END_CONFIG         0x00FEU
-#define LD2410S_CMD_WRITE_SN           0x0010U
-#define LD2410S_CMD_READ_SN            0x0011U
-#define LD2410S_CMD_SET_COMMON_PARAMS  0x0070U
-#define LD2410S_CMD_GET_COMMON_PARAMS  0x0071U
-#define LD2410S_CMD_SET_TRIG_THRESH    0x0072U
-#define LD2410S_CMD_GET_TRIG_THRESH    0x0073U
-#define LD2410S_CMD_SET_HOLD_THRESH    0x0076U
-#define LD2410S_CMD_GET_HOLD_THRESH    0x0077U
-#define LD2410S_CMD_SET_OUTPUT_MODE    0x007AU
+#define LD2410S_CMD_READ_FW_VERSION     0x0000U
+#define LD2410S_CMD_ENABLE_CONFIG       0x00FFU
+#define LD2410S_CMD_END_CONFIG          0x00FEU
+#define LD2410S_CMD_WRITE_SN            0x0010U
+#define LD2410S_CMD_READ_SN             0x0011U
+#define LD2410S_CMD_SET_COMMON_PARAMS   0x0070U
+#define LD2410S_CMD_GET_COMMON_PARAMS   0x0071U
+#define LD2410S_CMD_SET_TRIG_THRESH     0x0072U
+#define LD2410S_CMD_GET_TRIG_THRESH     0x0073U
+#define LD2410S_CMD_SET_HOLD_THRESH     0x0076U
+#define LD2410S_CMD_GET_HOLD_THRESH     0x0077U
+#define LD2410S_CMD_SET_OUTPUT_MODE     0x007AU
 
 /* Common parameter words (Table 2-2) */
 #define LD2410S_PW_FARTHEST_GATE        0x0005U
@@ -71,26 +71,22 @@
 /* Private helpers -----------------------------------------------------------*/
 
 static inline uint8_t writeU32Le(uint8_t* buf, uint32_t val) {
-    buf[0] = (uint8_t)(val & 0xFFU);
-    buf[1] = (uint8_t)((val >> 8) & 0xFFU);
-    buf[2] = (uint8_t)((val >> 16) & 0xFFU);
-    buf[3] = (uint8_t)((val >> 24) & 0xFFU);
+    *(uint32_t*)buf = val;
     return (uint8_t)sizeof(uint32_t);
 }
 
 static inline uint8_t writeU16Le(uint8_t* buf, uint16_t val) {
-    buf[0] = (uint8_t)(val & 0xFFU);
-    buf[1] = (uint8_t)((val >> 8) & 0xFFU);
+    *(uint16_t*)buf = val;
     return (uint8_t)sizeof(uint16_t);
 }
 
 static inline uint8_t readU32Le(const uint8_t* buf, uint32_t* val) {
-    *val = (uint32_t)buf[0] | ((uint32_t)buf[1] << 8) | ((uint32_t)buf[2] << 16) | ((uint32_t)buf[3] << 24);
+    *val = *(const uint32_t*)buf;
     return (uint8_t)sizeof(uint32_t);
 }
 
 static inline uint8_t readU16Le(const uint8_t* buf, uint16_t* val) {
-    *val = (uint16_t)(buf[0] | ((uint16_t)buf[1] << 8));
+    *val = *(const uint16_t*)buf;
     return (uint8_t)sizeof(uint16_t);
 }
 
@@ -149,11 +145,7 @@ static LD2410S_Status_t verifyCmdFrame(const uint8_t* buffer, uint16_t size, uin
  * - 2-byte ACK status (0 = success, 1 = failed)
  * - optional return data
  */
-static LD2410S_Status_t parseAck(const uint8_t* buffer,
-                                 uint16_t size,
-                                 uint16_t expectedCmd,
-                                 uint16_t* outAckStatus,
-                                 const uint8_t** outPayload,
+static LD2410S_Status_t parseAck(const uint8_t* buffer, uint16_t size, uint16_t expectedCmd, uint16_t* outAckStatus, const uint8_t** outPayload,
                                  uint16_t* outPayloadLen) {
     uint16_t dataLen = 0;
     LD2410S_Status_t st = verifyCmdFrame(buffer, size, &dataLen);
@@ -210,13 +202,9 @@ uint8_t LD2410S_buildSetConfigOn(uint8_t* buffer, uint16_t size) {
     return off;
 }
 
-uint8_t LD2410S_buildSetConfigOff(uint8_t* buffer, uint16_t size) {
-    return buildSimpleCmd(buffer, size, LD2410S_CMD_END_CONFIG);
-}
+uint8_t LD2410S_buildSetConfigOff(uint8_t* buffer, uint16_t size) { return buildSimpleCmd(buffer, size, LD2410S_CMD_END_CONFIG); }
 
-uint8_t LD2410S_buildGetFWVersion(uint8_t* buffer, uint16_t size) {
-    return buildSimpleCmd(buffer, size, LD2410S_CMD_READ_FW_VERSION);
-}
+uint8_t LD2410S_buildGetFWVersion(uint8_t* buffer, uint16_t size) { return buildSimpleCmd(buffer, size, LD2410S_CMD_READ_FW_VERSION); }
 
 uint8_t LD2410S_buildSetOutputMode(uint8_t* buffer, uint16_t size, LD2410S_OutputMode_t mode) {
     /* command value: 6 bytes
@@ -257,9 +245,7 @@ uint8_t LD2410S_buildWriteSerialNumber(uint8_t* buffer, uint16_t size, const uin
     return off;
 }
 
-uint8_t LD2410S_buildGetSerialNumber(uint8_t* buffer, uint16_t size) {
-    return buildSimpleCmd(buffer, size, LD2410S_CMD_READ_SN);
-}
+uint8_t LD2410S_buildGetSerialNumber(uint8_t* buffer, uint16_t size) { return buildSimpleCmd(buffer, size, LD2410S_CMD_READ_SN); }
 
 uint8_t LD2410S_buildSetCommonParams(uint8_t* buffer, uint16_t size, const LD2410S_CommonParams_t* params) {
     if (!buffer || !params) {
@@ -548,7 +534,7 @@ LD2410S_Status_t LD2410S_parseRadarData(const uint8_t* buffer, uint16_t size, LD
 
     uint16_t dataLen;
     readU16Le(buffer + 4, &dataLen);
-    if (dataLen < (1U + 1U + 2U + 2U + 64U)) {  /* data_type + state + dist + reserved + energy = 70 */
+    if (dataLen < (1U + 1U + 2U + 2U + 64U)) { /* data_type + state + dist + reserved + energy = 70 */
         return LD2410S_ERROR_INVALID_LENGTH;
     }
     if (size < (uint16_t)(dataLen + 10U)) {

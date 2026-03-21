@@ -63,30 +63,22 @@
 /* Private Functions ---------------------------------------------------------*/
 
 static inline uint8_t writeU32Le(uint8_t* buf, uint32_t val) {
-    buf[0] = (uint8_t)(val & 0xFFU);
-    buf[1] = (uint8_t)((val >> 8) & 0xFFU);
-    buf[2] = (uint8_t)((val >> 16) & 0xFFU);
-    buf[3] = (uint8_t)((val >> 24) & 0xFFU);
-
+    *(uint32_t*)buf = val;
     return sizeof(uint32_t);
 }
 
 static inline uint8_t writeU16Le(uint8_t* buf, uint16_t val) {
-    buf[0] = (uint8_t)(val & 0xFFU);
-    buf[1] = (uint8_t)((val >> 8) & 0xFFU);
-
+    *(uint16_t*)buf = val;
     return sizeof(uint16_t);
 }
 
 static inline uint8_t readU32Le(const uint8_t* buf, uint32_t* val) {
-    *val = (uint32_t)buf[0] | ((uint32_t)buf[1] << 8) | ((uint32_t)buf[2] << 16) | ((uint32_t)buf[3] << 24);
-
+    *val = *(const uint32_t*)buf;
     return sizeof(uint32_t);
 }
 
 static inline uint8_t readU16Le(const uint8_t* buf, uint16_t* val) {
-    *val = (uint16_t)(buf[0] | ((uint16_t)buf[1] << 8));
-
+    *val = *(const uint16_t*)buf;
     return sizeof(uint16_t);
 }
 

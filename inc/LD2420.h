@@ -46,7 +46,7 @@ extern "C" {
 /* Typedefs ------------------------------------------------------------------*/
 
 /**
- * \brief           Return status
+ * Return status
  */
 typedef enum {
     LD2420_SUCCESS = 0,
@@ -61,7 +61,7 @@ typedef enum {
 } LD2420_Status_t;
 
 /**
- * \brief           Firmware version information (command 0x0000)
+ * Firmware version information (command 0x0000)
  */
 typedef struct {
     uint16_t major;
@@ -70,16 +70,16 @@ typedef struct {
 } LD2420_Version_t;
 
 /**
- * \brief           Target report in upload mode (Table 5-7)
+ * Target report in upload mode (Table 5-7)
  */
 typedef struct {
-    uint8_t presence;              /**< 0x00 no one, 0x01 someone */
-    uint16_t target_distance_cm;   /**< Distance of detected target (cm) */
-    uint16_t gate_energy[16];      /**< Energy for gates 0..15 */
+    uint8_t presence;            /**< 0x00 no one, 0x01 someone */
+    uint16_t target_distance_cm; /**< Distance of detected target (cm) */
+    uint16_t gate_energy[16];    /**< Energy for gates 0..15 */
 } LD2420_Target_t;
 
 /**
- * \brief           Parameter IDs for command 0x0007 / 0x0008 (Table 5-5)
+ * Parameter IDs for command 0x0007 / 0x0008 (Table 5-5)
  */
 typedef enum {
     LD2420_PARAM_MIN_GATE = 0x0000,          /**< Minimum distance gate (0..15) */
@@ -88,6 +88,15 @@ typedef enum {
     /* Trigger thresholds: 0x0010..0x001F (gate 0..15) */
     /* Hold thresholds:    0x0020..0x002F (gate 0..15) */
 } LD2420_ParamId_t;
+
+/**
+ * Common parameters (commands 0x0007 / 0x0008)
+ */
+typedef struct {
+    uint8_t min_gate;           /**< Parameter ID 0x0000, range 0..15 */
+    uint8_t max_gate;           /**< Parameter ID 0x0001, range 0..15 */
+    uint16_t disappear_delay_s; /**< Parameter ID 0x0004, range in seconds */
+} LD2420_CommonParams_t;
 
 /* Function prototypes -------------------------------------------------------*/
 
@@ -122,17 +131,15 @@ uint8_t LD2420_buildSetConfigOff(uint8_t* buffer, uint16_t size);
 uint8_t LD2420_buildGetFWVersion(uint8_t* buffer, uint16_t size);
 
 /**
- * \brief           Build command to set one or more parameters (0x0007)
+ * \brief           Build command to set common parameters (0x0007)
  *
  * \param[out]      buffer: Buffer to write command frame to
  * \param[in]       size: Max size of the provided buffer
- * \param[in]       ids: Parameter IDs array (2 bytes each)
- * \param[in]       values: Parameter values array (4 bytes each)
- * \param[in]       n: Number of (id,value) pairs
+ * \param[in]       params: Common parameters to set
  *
  * \return          Number of bytes written to buffer, 0 on error
  */
-uint8_t LD2420_buildSetParams(uint8_t* buffer, uint16_t size, const uint16_t* ids, const uint32_t* values, uint8_t n);
+uint8_t LD2420_buildSetCommonParams(uint8_t* buffer, uint16_t size, const LD2420_CommonParams_t* params);
 
 /**
  * \brief           Build command to get one or more parameters (0x0008)

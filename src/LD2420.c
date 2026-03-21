@@ -35,12 +35,12 @@
 /* Macros --------------------------------------------------------------------*/
 
 /* Command frames: header FD FC FB FA (u32=0xFAFBFCFD), footer 04 03 02 01 */
-#define LD2420_FRAME_HEADER_CMD 0xFAFBFCFDU
-#define LD2420_FRAME_FOOTER_CMD 0x01020304U
+#define LD2420_FRAME_HEADER_CMD    0xFAFBFCFDU
+#define LD2420_FRAME_FOOTER_CMD    0x01020304U
 
 /* Upload-mode report frames: header F4 F3 F2 F1 (u32=0xF1F2F3F4), footer F8 F7 F6 F5 (u32=0xF5F6F7F8) */
-#define LD2420_FRAME_HEADER_UP  0xF1F2F3F4U
-#define LD2420_FRAME_FOOTER_UP  0xF5F6F7F8U
+#define LD2420_FRAME_HEADER_UP     0xF1F2F3F4U
+#define LD2420_FRAME_FOOTER_UP     0xF5F6F7F8U
 
 /* Commands (HLK-LD2420 user manual v1.3.2) */
 #define LD2420_CMD_READ_FW_VERSION 0x0000U
@@ -52,26 +52,22 @@
 /* Private helpers -----------------------------------------------------------*/
 
 static inline uint8_t writeU32Le(uint8_t* buf, uint32_t val) {
-    buf[0] = (uint8_t)(val & 0xFFU);
-    buf[1] = (uint8_t)((val >> 8) & 0xFFU);
-    buf[2] = (uint8_t)((val >> 16) & 0xFFU);
-    buf[3] = (uint8_t)((val >> 24) & 0xFFU);
+    *(uint32_t*)buf = val;
     return (uint8_t)sizeof(uint32_t);
 }
 
 static inline uint8_t writeU16Le(uint8_t* buf, uint16_t val) {
-    buf[0] = (uint8_t)(val & 0xFFU);
-    buf[1] = (uint8_t)((val >> 8) & 0xFFU);
+    *(uint16_t*)buf = val;
     return (uint8_t)sizeof(uint16_t);
 }
 
 static inline uint8_t readU32Le(const uint8_t* buf, uint32_t* val) {
-    *val = (uint32_t)buf[0] | ((uint32_t)buf[1] << 8) | ((uint32_t)buf[2] << 16) | ((uint32_t)buf[3] << 24);
+    *val = *(const uint32_t*)buf;
     return (uint8_t)sizeof(uint32_t);
 }
 
 static inline uint8_t readU16Le(const uint8_t* buf, uint16_t* val) {
-    *val = (uint16_t)(buf[0] | ((uint16_t)buf[1] << 8));
+    *val = *(const uint16_t*)buf;
     return (uint8_t)sizeof(uint16_t);
 }
 
@@ -130,11 +126,7 @@ static LD2420_Status_t verifyCmdFrame(const uint8_t* buffer, uint16_t size, uint
  * - 2-byte ACK status (0 = success, 1 = failed)
  * - optional return data
  */
-static LD2420_Status_t parseAck(const uint8_t* buffer,
-                                uint16_t size,
-                                uint16_t expectedCmd,
-                                uint16_t* outAckStatus,
-                                const uint8_t** outPayload,
+static LD2420_Status_t parseAck(const uint8_t* buffer, uint16_t size, uint16_t expectedCmd, uint16_t* outAckStatus, const uint8_t** outPayload,
                                 uint16_t* outPayloadLen) {
     uint16_t dataLen = 0;
     LD2420_Status_t st = verifyCmdFrame(buffer, size, &dataLen);
@@ -191,31 +183,27 @@ uint8_t LD2420_buildSetConfigOn(uint8_t* buffer, uint16_t size) {
     return off;
 }
 
-uint8_t LD2420_buildSetConfigOff(uint8_t* buffer, uint16_t size) {
-    return buildSimpleCmd(buffer, size, LD2420_CMD_END_CONFIG);
-}
+uint8_t LD2420_buildSetConfigOff(uint8_t* buffer, uint16_t size) { return buildSimpleCmd(buffer, size, LD2420_CMD_END_CONFIG); }
 
-uint8_t LD2420_buildGetFWVersion(uint8_t* buffer, uint16_t size) {
-    return buildSimpleCmd(buffer, size, LD2420_CMD_READ_FW_VERSION);
-}
+uint8_t LD2420_buildGetFWVersion(uint8_t* buffer, uint16_t size) { return buildSimpleCmd(buffer, size, LD2420_CMD_READ_FW_VERSION); }
 
-uint8_t LD2420_buildSetParams(uint8_t* buffer, uint16_t size, const uint16_t* ids, const uint32_t* values, uint8_t n) {
-    if (!buffer || !ids || !values) {
-        return 0;
-    }
-    if (n == 0U) {
+uint8_t LD2420_buildSetCommonParams(uint8_t* buffer, uint16_t size, const LD2420_CommonParams_t* params) {
+    if (!buffer || !params) {
         return 0;
     }
 
-    /* dataLen = cmd(2) + n*(id(2) + value(4)) */
-    uint16_t dataLen = (uint16_t)(2U + (uint16_t)n * 6U);
+    uint16_t ids[3] = {LD2420_PARAM_MIN_GATE, LD2420_PARAM_MAX_GATE, LD2420_PARAM_DISAPPEAR_DELAY_S};
+    uint32_t values[3] = {(uint32_t)params->min_gate, (uint32_t)params->max_gate, (uint32_t)params->disappear_delay_s};
+
+    /* dataLen = cmd(2) + 3*(id(2) + value(4)) */
+    const uint16_t dataLen = 26U;
     if (buildHeader(buffer, size, dataLen) != LD2420_SUCCESS) {
         return 0;
     }
 
     uint8_t off = 6U;
     off += writeU16Le(buffer + off, LD2420_CMD_SET_PARAMS);
-    for (uint8_t i = 0; i < n; i++) {
+    for (uint8_t i = 0; i < 3U; i++) {
         off += writeU16Le(buffer + off, ids[i]);
         off += writeU32Le(buffer + off, values[i]);
     }

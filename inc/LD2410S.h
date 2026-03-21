@@ -41,12 +41,12 @@ extern "C" {
 /* Macros --------------------------------------------------------------------*/
 
 /** LD2410S exposes 0..15 distance gates for trigger/hold thresholds. */
-#define LD2410S_MAX_GATE  15u
+#define LD2410S_MAX_GATE 15u
 
 /* Typedefs ------------------------------------------------------------------*/
 
 /**
- * \brief           Return status
+ * Return status
  */
 typedef enum {
     LD2410S_SUCCESS = 0,
@@ -62,7 +62,7 @@ typedef enum {
 } LD2410S_Status_t;
 
 /**
- * \brief           Output mode (command 0x007A)
+ * Output mode (command 0x007A)
  */
 typedef enum {
     LD2410S_OUTPUT_MINIMAL = 0,
@@ -70,7 +70,7 @@ typedef enum {
 } LD2410S_OutputMode_t;
 
 /**
- * \brief           Response speed values (common parameter word 0x000B)
+ * Response speed values (common parameter word 0x000B)
  */
 typedef enum {
     LD2410S_RESPONSE_NORMAL = 5,
@@ -78,7 +78,7 @@ typedef enum {
 } LD2410S_ResponseSpeed_t;
 
 /**
- * \brief           Common parameters (commands 0x0070 / 0x0071)
+ * Common parameters (commands 0x0070 / 0x0071)
  *
  * Note about frequency representation:
  * The protocol transports values as 32-bit little-endian integers. In the
@@ -95,7 +95,7 @@ typedef struct {
 } LD2410S_CommonParams_t;
 
 /**
- * \brief           Firmware version information (command 0x0000)
+ * Firmware version information (command 0x0000)
  */
 typedef struct {
     uint16_t major;
@@ -104,7 +104,7 @@ typedef struct {
 } LD2410S_Version_t;
 
 /**
- * \brief           Target state in report frames
+ * Target state in report frames
  *
  * Spec: 0/1 indicates no one; 2/3 indicates someone.
  */
@@ -116,14 +116,14 @@ typedef enum {
 } LD2410S_TargetState_t;
 
 /**
- * \brief           Parsed target report (standard output mode)
+ * Parsed target report (standard output mode)
  *
  * The datasheet defines a 64-byte energy blob. The vendor document does not
  * explicitly state the per-gate element width in that blob, therefore the
  * library exposes it as raw bytes.
  */
 typedef struct {
-    uint8_t data_type;                /**< 0x01 for standard report */
+    uint8_t data_type; /**< 0x01 for standard report */
     LD2410S_TargetState_t target_state;
     uint16_t object_distance_cm;
     uint8_t reserved[2];
