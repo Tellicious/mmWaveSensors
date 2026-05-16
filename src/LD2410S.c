@@ -50,6 +50,7 @@
 #define LD2410S_CMD_READ_FW_VERSION     0x0000U
 #define LD2410S_CMD_ENABLE_CONFIG       0x00FFU
 #define LD2410S_CMD_END_CONFIG          0x00FEU
+#define LD2410S_CMD_AUTO_THRESH         0x0009U
 #define LD2410S_CMD_WRITE_SN            0x0010U
 #define LD2410S_CMD_READ_SN             0x0011U
 #define LD2410S_CMD_SET_COMMON_PARAMS   0x0070U
@@ -304,6 +305,22 @@ uint8_t LD2410S_buildGetCommonParams(uint8_t* buffer, uint16_t size) {
     off += writeU16Le(buffer + off, LD2410S_PW_STATUS_REPORT_FREQ);
     off += writeU16Le(buffer + off, LD2410S_PW_DISTANCE_REPORT_FREQ);
     off += writeU16Le(buffer + off, LD2410S_PW_RESPONSE_SPEED);
+    off += writeU32Le(buffer + off, LD2410S_FRAME_FOOTER_CMD);
+    return off;
+}
+
+uint8_t LD2410S_buildSetAutoThresholds(uint8_t* buffer, uint16_t size, uint16_t triggerFactor, uint16_t holdFactor, uint16_t scanTime) {
+    /* cmd(2) + triggerFactor(2) + holdFactor(2) + scanTime(2) = 8 */
+    if (buildHeader(buffer, size, 8U) != LD2410S_SUCCESS) {
+        return 0;
+    }
+
+    uint8_t off = 6U;
+    off += writeU16Le(buffer + off, LD2410S_CMD_AUTO_THRESH);
+    off += writeU16Le(buffer + off, triggerFactor);
+    off += writeU16Le(buffer + off, holdFactor);
+    off += writeU16Le(buffer + off, scanTime);
+
     off += writeU32Le(buffer + off, LD2410S_FRAME_FOOTER_CMD);
     return off;
 }

@@ -38,11 +38,6 @@ extern "C" {
 /* Includes ------------------------------------------------------------------*/
 #include <stdint.h>
 
-/* Macros --------------------------------------------------------------------*/
-
-/** LD2410S exposes 0..15 distance gates for trigger/hold thresholds. */
-#define LD2410S_MAX_GATE 15u
-
 /* Typedefs ------------------------------------------------------------------*/
 
 /**
@@ -218,6 +213,19 @@ uint8_t LD2410S_buildSetCommonParams(uint8_t* buffer, uint16_t size, const LD241
  * \return          Number of bytes written to buffer, 0 on error
  */
 uint8_t LD2410S_buildGetCommonParams(uint8_t* buffer, uint16_t size);
+
+/**
+ * \brief           Build command to trigger automatic thresholds determination
+ *
+ * \param[out]      buffer: Buffer to write command frame to
+ * \param[in]       size: Max size of the provided buffer
+ * \param[in]       triggerFactor: sensitivity factor (suggested 2)
+ * \param[in]       holdFactor: retention/hold factor (suggested 1)
+ * \param[in]       scanTime: scan duration in seconds (suggested 78)
+ * 
+ * \return          Number of bytes written to buffer, 0 on error
+ */
+uint8_t LD2410S_buildSetAutoThresholds(uint8_t* buffer, uint16_t size, uint16_t triggerFactor, uint16_t holdFactor, uint16_t scanTime);
 
 /**
  * \brief           Build command to set trigger thresholds (0x0072)
